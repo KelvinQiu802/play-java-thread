@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 
 public class ThreadTest {
@@ -13,7 +14,7 @@ public class ThreadTest {
 
         Runnable task1 = () -> {
             for (int i = 0; i < 100; ++i) {
-                bank.transfer(0, 1, 1);
+                bank.transferRandomly(1);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -24,7 +25,7 @@ public class ThreadTest {
 
         Runnable task2 = () -> {
             for (int i = 0; i < 100; ++i) {
-                bank.transfer(2, 3, 1);
+                bank.transferRandomly(1);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -52,10 +53,28 @@ class Bank {
         User toUser = users.get(receiverId);
         fromUser.setBalance(fromUser.getBalance() - amount);
         toUser.setBalance(toUser.getBalance() + amount);
-        Logger.getGlobal().info(String.format("Thread[%s] / User[%d] -> User[%d]: %.1f USD",
+        Logger.getGlobal().info(String.format("Thread[%s] / User[%d] -> User[%d]: %.1f USD Total: %.1f",
                 Thread.currentThread().getName(),
                 senderId, receiverId,
-                amount));
+                amount, getTotalBalance()));
+    }
+
+    public void transferRandomly(double amount) {
+        Random random = new Random();
+        int sender = random.nextInt(users.size());
+        int receiver;
+        do {
+            receiver = random.nextInt(users.size());
+        } while (sender == receiver);
+        transfer(sender, receiver, amount);
+    }
+
+    public double getTotalBalance() {
+        double result = 0;
+        for (User u : users.values()) {
+            result += u.getBalance();
+        }
+        return result;
     }
 
 }
